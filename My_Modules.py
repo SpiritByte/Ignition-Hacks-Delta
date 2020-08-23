@@ -40,6 +40,24 @@ def readbook():
             allbooks.append(book)
         return(allbooks)
 
+## Read user skip book file
+def readskiphistory(myuserid):
+    ## Reading user skip book file.
+    with open("user_book_skip.csv") as skiphistoryfile:
+        allskiphistory = csv.reader(skiphistoryfile, delimiter=",")
+       
+        ## Building skip book list
+        allskipbooks = []
+        for skiphistory in allskiphistory:
+            if len(skiphistory) <=0:
+                break
+            skipuserid = skiphistory[0]
+            if skipuserid == myuserid:
+                skipbookid = skiphistory[1]
+                skipbook = (skipuserid, skipbookid)
+                allskipbooks.append(skipbook)
+        return(allskipbooks)
+
 ## Return user info of userid
 def getuserinfo(myuserid):
     ## Read user file
@@ -126,6 +144,21 @@ def userexisting(checkusername):
             break
     return(False)
 
+## Check if book exists
+def bookexisting(mybookid):
+    # Read user file
+    allbooks = readbook()
+            
+    ## Check if user exists
+    for book in allbooks:
+        bookid = book[0] #1 user name
+        if bookid == mybookid:
+            return(True)
+            break
+    return(False)
+
+
+
     
 ## Add new user to user file
 def adduser(userinfo):
@@ -148,6 +181,29 @@ def adduser(userinfo):
     appenduserfile.write(userinfo)
     appenduserfile.close()
 
+
+## Add new borrows 
+def addborrow(userid, bookid):
+
+    borrow = str(userid) + "," + str(bookid) + ",0"
+    
+    ## Adding new borrow to the borrow file
+    appenduserfile = open("user_book.csv","a")
+    appenduserfile.write("\n")
+    appenduserfile.write(borrow)
+    appenduserfile.close()
+
+
+## Add skip books  
+def addskip(userid, bookid):
+
+    skip = str(userid) + "," + str(bookid)
+    
+    ## Adding new skip to the skip file
+    appenduserfile = open("user_book_skip.csv","a")
+    appenduserfile.write("\n")
+    appenduserfile.write(skip)
+    appenduserfile.close()
 
 
 ## Return top 2 themes of the user borrow history
@@ -199,15 +255,32 @@ def isborrowed(userid, bookid):
     ## Read borrow history
     allborrowhistry = readborrowhistory(userid)
 
+    borrowed = False
     for borrowhistory in allborrowhistry:
-        borrowed = False
-        for borrowhistory in allborrowhistry:
-            borrowuserid = borrowhistory[0]
-            borrowbookid = borrowhistory[1]
-            if borrowuserid == userid and borrowbookid == bookid:
-                borrowed=True
-                break
+        borrowuserid = borrowhistory[0]
+        borrowbookid = borrowhistory[1]
+        
+        if borrowuserid == userid and borrowbookid == bookid:
+            borrowed=True
+            break
+    
     return(borrowed)  
+
+
+## Check the book has ever been skipped before
+def isskipped(userid, bookid):
+    ## Read skip history
+    allskiphistry = readskiphistory(userid)
+
+    skipped = False
+    for skiphistory in allskiphistry:
+        skipuserid = skiphistory[0]
+        skipbookid = skiphistory[1]
+        if skipuserid == userid and skipbookid == bookid:
+            skipped = True
+            break
+    return(skipped)
+
 
 
 ## Return book mean rating
@@ -238,7 +311,7 @@ def returnbookrating(bookid):
 
 
 ## Return book by theme, with highest average ratings
-## Exclude the book the user already borrowed
+## Exclude the book the user already borrowed or skipped
 def returnbookbytheme(userid, mytheme):
 
     allbooks = readbook()
@@ -252,7 +325,7 @@ def returnbookbytheme(userid, mytheme):
         bookname = book[1]
         booktheme = book[2]
         
-        if booktheme == mytheme and not isborrowed(userid, bookname):
+        if booktheme == mytheme and not isborrowed(userid, bookid) and not isskipped(userid, bookid):
             ## collect all book of same theme and not borrowed before
             ## returnbook 0 - rating, 1- book id, 2- book name
             bookrating = returnbookrating(bookid)
@@ -279,17 +352,77 @@ def maxbookid():
 
     return(lastbookid)
 
+## Return book by age, with highest average ratings
+## Exclude the book the user already borrowed or skipped
+def returnbookbyage(userid):
 
+    username,userage,usergender = getuserinfo(userid)
+    
+    ## Store return books
+    returnbooks = []
+    
+    ## Read borrow history
+    allborrowhistory = readborrowhistory(None)
+
+    for borrowhistory in allborrowhistory:
+        borrowuserid = borrowhistory[0]
+        borrowuserage = borrowhistory[4]
+        borrowusergender = borrowhistory[5]
+        borrowbookid = borrowhistory[1]
+        borrowbookname = borrowhistory[6]
+        borrowbooktheme = borrowhistory[7]
+
+        borrowusername,borrowuserage,borrowusergender = getuserinfo(borrowuserid)
+        
+        ## Skip current user history, and retrun book of same age group (age differnece <=2)
+        if borrowuserid != userid and abs(int(userage) - int(borrowuserage)) <= 2:
+
+            borrowbookrating = returnbookrating(borrowbookid)
+            
+            returnbook = (borrowbookrating, borrowbookid, borrowbookname, borrowbooktheme)       
+            returnbooks.append (returnbook)
+
+    ## Sorting books by rating desc
+    returnbooks.sort(reverse=True)
+
+    ## Return 2 books of toping rating 
+    ## print ("?returnbooks", returnbooks)
+    returnbook1=None
+    if len(returnbooks)>=1:
+        returnbook1 = returnbooks[0]
+    returnbook2 = None
+    if len(returnbooks)>=2:
+        returnbook2 = returnbooks[1]
+    return(returnbook1, returnbook2)
+
+    
 ## Returning book randomly
 def returnbookrandomly(myuserid):
+    ## Prepare book list
+    availblebooklist = []
 
-    ## Return largest book it
-    largestbookid = maxbookid()
+    allbooks = readbook()
+    rowid = 1
+    for book in allbooks:
+        bookid = book[0]
+        
+        if not isborrowed(myuserid,bookid) and not isskipped (myuserid, bookid):
+            availblebook = (rowid,bookid)
+            availblebooklist.append(availblebook)
+            rowid += 1
+    
+    ## Return max rows 
+    maxrowid = rowid - 1
+    ## No book availble
+    if maxrowid<=0:
+        return
 
     ## Return random book id
     ## randombookid is required to be string for the function call for getbookinfo
-    randombookid = str(random.randint(1,int(largestbookid)))
-    
+    randomrowid = random.randint(1,int(maxrowid))
+    randombook = availblebooklist[randomrowid-1]
+    randombookid = str(randombook[1])
+   
     randombookname,randombooktheme = getbookinfo(randombookid)
     radombookrating = returnbookrating(randombookid)
     suggestbook = (radombookrating, randombookid, randombookname, randombooktheme)
@@ -298,7 +431,6 @@ def returnbookrandomly(myuserid):
 
     
 ############################################################   
-
 ## Return Suggested Books
 
 ## A total of 5 books will be suggested
@@ -308,14 +440,7 @@ def returnbookrandomly(myuserid):
     ## Previously skipped books will not be recommanded again.
     ## High rating books will be recommended first
     ### Recommendations will be getting better and better from machine learning (after more and more user data collected)
-
-
-    ## Get the list of book ids
-    ## Count books by themes
-    ## Seach library and get the top books by theme excluding the ones he has already borrowed
-    ## For each theme calculate the content percentage
-    ## A total of 5 books will be recommended. Determine how many books by theme will be returned
-    
+############################################################  
 
 def suggestbooks(userid):
     
@@ -343,11 +468,16 @@ def suggestbooks(userid):
 
     
     ## Suggest books of same age group
-
+    suggestbook1,suggestbook2 = returnbookbyage (userid)
+    if suggestbook1 is not None:
+        suggestedbooks.append(suggestbook1)
+    if suggestbook2 is not None:
+        suggestedbooks.append(suggestbook2)
 
 
     ## Randomly suggest more books until 5 books
-    while len(suggestedbooks) <= 5:
+    trycount = 1
+    while len(suggestedbooks) < 5:
         randomsuggestbook = returnbookrandomly(userid)
         if randomsuggestbook is not None:
             randomsuggestbookid = randomsuggestbook[1]
@@ -358,10 +488,14 @@ def suggestbooks(userid):
                 if bookid == randomsuggestbookid:
                     issuggested = True
                     break
-            if not isborrowed(userid, randomsuggestbookid) and not issuggested:
+            if not isborrowed(userid, randomsuggestbookid) and not issuggested and not isskipped(userid, randomsuggestbookid):
                 suggestedbooks.append(randomsuggestbook) 
 
-  
+        trycount += trycount
+        ## stop if trycount >10000 
+        if trycount>10000:
+            break
+    
     ## return suggested books   
     return (suggestedbooks)
         
