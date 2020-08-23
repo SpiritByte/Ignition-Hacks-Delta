@@ -7,6 +7,24 @@ def printfile(filename):
     readMe = open (filename, 'r').read()
     print (readMe)
 
+## Reset skip book file
+def resetskipfile(userid):
+
+    ## Reading skip file.
+    skiprows = list()
+    with open("user_book_skip.csv") as skipfile:
+        allskiprows = csv.reader(skipfile, delimiter=",")
+        for skiprow in allskiprows:
+            rowuserid = skiprow[0]
+            if rowuserid != str(userid):
+                skiprows.append(skiprow)
+            
+    with open('user_book_skip.csv', 'w') as skipfile:
+        writer = csv.writer(skipfile)
+        writer.writerows(skiprows)
+
+              
+
 ## Read user file
 def readuser():
     ## Reading user file.

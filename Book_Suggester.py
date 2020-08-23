@@ -46,23 +46,36 @@ userid = m.getuserid(username)
 ## Return suggested books
 suggestedbooks = m.suggestbooks(userid)
 
-if len(suggestedbooks)> 0:
-
-    print("\n")
-    print("Here are some books I suggested. Enjoy! \n")
+## Reset skip file to try again if no suggested books
+if len(suggestedbooks)<= 0:
+    ## reset skip file
+    m.resetskipfile(userid)
     
-    for book in suggestedbooks:
-        bookid = book[1]
-        bookname = book[2]
-        booktheme = book[3]
-        print(bookid,"|",bookname,"|",booktheme)
-        print("\n")
+    ## Return suggested books again
+    suggestedbooks = m.suggestbooks(userid)
+    if len(suggestedbooks)<= 0:
+        print ("Sorry. No new book suggestions!")
+        raise SystemExit 
+    
+  
+
         
-else:
-    print ("No book suggestion!!")
-    raise SystemExit
 
 while True:
+
+    ## Display suggested books
+    if len(suggestedbooks)> 0:
+        print("\n")
+        print("Here are some books I suggested. Enjoy! \n")
+        
+        for book in suggestedbooks:
+            bookid = book[1]
+            bookname = book[2]
+            booktheme = book[3]
+            print(bookid,"|",bookname,"|",booktheme)
+            print("\n")
+
+    ## Ask user input
     userselection = input("Enter book ID to borrow the book or type 'S' to skip all or type 'E' to exit. \n")
     
     ## exit
@@ -70,7 +83,7 @@ while True:
         print("Thank you for comming! Have a great day!")
         raise SystemExit
 
-    ## Skip and suggest books again          
+    ## Skip and suggest other books          
     elif userselection == "S":
 
         ## Update skip file
@@ -81,21 +94,18 @@ while True:
         ## Return suggested books again
         suggestedbooks = m.suggestbooks(userid)
 
-        if len(suggestedbooks)> 0:
+        ## Run out all books, reset skip file so that previously skipped file can be displayed again   
+        if len(suggestedbooks)<=0:
+            ## reset skip file
+            m.resetskipfile(userid)
+            suggestedbooks = m.suggestbooks(userid)
+            if len(suggestedbooks)<= 0:
+                print ("Sorry. No new book suggestions!")
+                raise SystemExit 
 
-            print("\n")
-            print("Here are some books suggested. Enjoy! \n")
-        
-            for book in suggestedbooks:
-                bookid = book[1]
-                bookname = book[2]
-                booktheme = book[3]
-                print(bookid,"|",bookname,"|",booktheme)
-                print("\n")
-                
-        else:
-            print ("No book suggestions!!")
-            raise SystemExit
+        ## Loop to display new suggestions
+        continue
+
 
     ## add borrow file                
     else:
@@ -104,7 +114,10 @@ while True:
         if m.bookexisting(bookid):
             m.addborrow(userid, bookid)
             bookname,booktheme = m.getbookinfo(bookid)
-            print("'" + bookname + "' has been borrowed.")
+            print("\nBook '" + bookname + "' has been borrowed.")
+            ## Refreshing the suggested books after borrowing a book
+            suggestedbooks = m.suggestbooks(userid)
+
         else:
             print ("Wrong input!")
 
