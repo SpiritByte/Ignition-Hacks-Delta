@@ -9,22 +9,4 @@ The way Nova works is that a user can type in their full name, then, if you don'
 
 Now to talk about the code. The coding has properly organized functions and modules to use in the main script. The comments are easy to understand and related to the lines after the comment. All the code is organized and the names of the created variables are related to what we are trying to accomplish. In all, the code is nice and organized, easy to understand and the comments are easily understood.
 
-
-It learns:
-Interests of the user
-Machine learning
-Properly assign recommendations
-
-The robot can:
-Smartly recommend books that the user is interested in
-It does not recommend a book suggestion twice
-It keeps track of the book borrowing history
-
-The code:
-Can properly organize functions and modules to use in the main script
-Comments are easy to understand and related to the lines after
-Organized and created variables related to what we are trying to accomplish
-
-The output:
-You sign in or make a new account
-Nova recommends you a list of books
+My overall scope of this project is to make a good, well-rounded robot that can help children with book recommendations.
