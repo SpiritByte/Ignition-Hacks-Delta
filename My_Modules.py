@@ -11,19 +11,39 @@ def printfile(filename):
 def resetskipfile(userid):
 
     ## Reading skip file.
-    skiprows = list()
+    skiprows = []
     with open("user_book_skip.csv") as skipfile:
         allskiprows = csv.reader(skipfile, delimiter=",")
         for skiprow in allskiprows:
-            rowuserid = skiprow[0]
-            if rowuserid != str(userid):
-                skiprows.append(skiprow)
-            
-    with open('user_book_skip.csv', 'w') as skipfile:
-        writer = csv.writer(skipfile)
-        writer.writerows(skiprows)
+            if len(skiprow)>0:
+                rowuserid = skiprow[0]
+                if rowuserid != str(userid):
+                    skiprows.append(skiprow)
 
-              
+
+    ## Empty skip file
+    file = open("user_book_skip.csv","w")
+    file.close()
+
+    ## Add back skip records of other users
+    appenduserfile = open("user_book_skip.csv","a")
+    i=1
+    for skiprow in skiprows:
+        userid = skiprow[0]
+        bookid = skiprow[1]
+        
+        userinfo = userid + "," + bookid
+
+        appenduserfile.write(userinfo)
+        # print (i,len(skiprows), userinfo)
+        if i != len(skiprows):
+            appenduserfile.write ("\n")
+
+        i+=1
+        
+    appenduserfile.close()
+
+
 
 ## Read user file
 def readuser():

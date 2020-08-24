@@ -20,7 +20,7 @@ print(m.readborrowhistory(None))
 print("\n")
 print(m.getbookinfo('6'))
 '''
-
+m.resetskipfile (2)
 
 
 ## Starting conversation, asking for full name
@@ -56,9 +56,6 @@ if len(suggestedbooks)<= 0:
     if len(suggestedbooks)<= 0:
         print ("Sorry. No new book suggestions!")
         raise SystemExit 
-    
-  
-
         
 
 while True:
@@ -86,7 +83,7 @@ while True:
     ## Skip and suggest other books          
     elif userselection == "S":
 
-        ## Update skip file
+        ## Add skip to file
         for book in suggestedbooks:
             bookid = book[1]
             m.addskip(userid, bookid)
