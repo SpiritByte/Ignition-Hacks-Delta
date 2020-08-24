@@ -20,8 +20,6 @@ print(m.readborrowhistory(None))
 print("\n")
 print(m.getbookinfo('6'))
 '''
-m.resetskipfile (2)
-
 
 ## Starting conversation, asking for full name
 username = input("Hello I'm Nova, the book suggester! What's your name(First and Last)? \n")
@@ -57,6 +55,7 @@ if len(suggestedbooks)<= 0:
         print ("Sorry. No new book suggestions!")
         raise SystemExit 
         
+
 
 while True:
 
